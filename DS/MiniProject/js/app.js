@@ -17,25 +17,42 @@
 
   return new Promise(function (resolve, reject) {
     // subscribe to the changes via Pusher
-    var pusher = new Pusher('8da9d56271713a65600c', {cluster: 'ap3'});
+    var pusher = new Pusher("8da9d56271713a65600c", { cluster: 'ap3'});
     var channel = pusher.subscribe(id);
     channel.bind('client-text-edit', function(html) {
       // save the current position
       var currentCursorPosition = getCaretCharacterOffsetWithin(doc);
-      doc.innerHTML = html;
+      console.log('client-text-edit call');
+	var prehtml = doc.innerHTML;
+	var newhtml = html;
+	var len = prehtml.length;
+	var prefix = html.slice(0, currentCursorPosition);
+	console.log(prefix);
+	console.log(prehtml);	    
+	doc.innerHTML = html;
+	
       // set the previous cursor position
-      setCaretPosition(doc, currentCursorPosition);
+	if(prehtml.slice(0, currentCursorPosition) == prefix){
+	console.log("IF");
+      	setCaretPosition(doc, currentCursorPosition);
+	}	
+	else 
+	setCaretPosition(doc, currentCursorPosition + newhtml.length - prehtml.length );
     });
     channel.bind('pusher:subscription_succeeded', function() {
-      resolve(channel);
+	console.log('subscription done');      
+	function triggerChange (e) {	     
+		console.log("triggerChange");
+		console.log(e.target.innerHTML);
+	      var flag = channel.trigger('client-text-edit', e.target.innerHTML);
+		console.log(flag);
+	}
+	doc.addEventListener('input', triggerChange);
     });
   }).then(function (channel) {
-    function triggerChange (e) {
-      channel.trigger('client-text-edit', e.target.innerHTML);
-    }
+    
+  });
 
-    doc.addEventListener('input', triggerChange);
-  })
 
   // a unique random key generator
   function getUniqueId () {
@@ -51,6 +68,7 @@
   }
 
   function getCaretCharacterOffsetWithin(element) {
+	console.log('getCaretCharacterOffsetWithin');
     var caretOffset = 0;
     var doc = element.ownerDocument || element.document;
     var win = doc.defaultView || doc.parentWindow;
@@ -75,6 +93,7 @@
   }
 
   function setCaretPosition(el, pos) {
+	console.log('setCaretPosition');
     // Loop through all child nodes
     for (var node of el.childNodes) {
       if (node.nodeType == 3) { // we have a text node
