@@ -12,7 +12,7 @@ app.use(express.static('./'));
 var pusher = new Pusher({
   appId: '879725',
   key: '8da9d56271713a65600c',
-  secret: 'af1b199783358220f389',
+  secret:  'af1b199783358220f389',
   cluster: 'ap3'
 });
 
